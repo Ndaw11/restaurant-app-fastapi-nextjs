@@ -1,0 +1,78 @@
+version: '3.9'  # Version du format de fichier Docker Compose (3.9 est une version récente et stable)
+
+services:  # Début de la section qui définit tous les conteneurs/services
+
+  fastapi:  # Nom du service (backend de l'application avec FastAPI)
+    build: ./backend  # Docker va construire une image en utilisant le Dockerfile dans le dossier ./backend
+    container_name: api  # Nom personnalisé du conteneur (utile pour le retrouver avec docker ps)
+    ports:
+      - "8001:8000"  # Le port 8000 de ta machine est lié au port 8000 du conteneur (localhost:8000)
+    volumes:
+      - ./backend:/app  # Montage de ton dossier local ./backend dans /app du conteneur (pour voir les changements en live)
+    env_file:
+      - .env  # Fichier .env utilisé pour charger les variables d’environnement (ex: DB_HOST, etc.)
+    depends_on:
+      - postgres  # Ce service doit démarrer après postgres
+      - redis     # et après redis aussi
+      
+    networks:
+      - backend  # Ce service est connecté au réseau privé "backend"
+
+  # nextjs:  # Service pour ton frontend (par exemple un projet Next.js)
+  #   build: ./frontend  # Construction de l'image à partir du dossier ./frontend
+  #   container_name: frontend  # Nom du conteneur
+  #   ports:
+  #     - "3000:3000"  # Le port 3000 local est lié au port 3000 du conteneur (localhost:3000)
+  #   volumes:
+  #     - ./frontend:/app  # Le code frontend local est monté dans le conteneur
+  #   stdin_open: true  # Permet d’interagir avec le conteneur via le terminal (utile pour Next.js en dev)
+  #   tty: true  # Garde le terminal ouvert pour que tu puisses voir les logs/interagir
+  #   networks:
+  #     - backend  # Connecté au réseau backend aussi
+
+  postgres:  # Service pour la base de données PostgreSQL
+    image: postgres:15-alpine  # Utilise une image légère (alpine) avec PostgreSQL version 15
+    container_name: postgres  # Nom du conteneur
+    restart: always  # Redémarre automatiquement si le conteneur s’arrête
+    environment:  # Variables d’environnement utilisées pour initialiser la base de données
+      POSTGRES_USER: root  # Nom d’utilisateur de la base
+      POSTGRES_PASSWORD: admin123  # Mot de passe
+      POSTGRES_DB: Restaurant  # Nom de la base créée au démarrage
+    ports:
+      - "5432:5432" # mappe le port 5432 du container au 5432 de ta machine locale
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Les données sont persistées via un volume Docker
+    networks:
+      - backend  # Connecté au même réseau privé
+
+  redis:  # Service pour Redis (base de données en mémoire pour le cache, file d’attente, etc.)
+    image: redis:alpine  # Image légère de Redis
+    container_name: redis  # Nom du conteneur
+    networks:
+      - backend  # Aussi connecté au réseau privé
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - backend
+    depends_on:
+      - postgres
+
+
+# Définition des volumes persistants (utilisés pour stocker les données de PostgreSQL)
+volumes:
+  postgres_data:  # Ce volume sauvegarde les données dans ta machine, même si le conteneur est supprimé
+  pgadmin_data:
+
+# Définition du réseau Docker
+networks:
+  backend:  # Réseau privé partagé entre les conteneurs pour qu'ils puissent communiquer entre eux (par nom)
