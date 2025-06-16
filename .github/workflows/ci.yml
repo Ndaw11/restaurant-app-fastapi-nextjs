@@ -1,0 +1,114 @@
+# 🧩 Nom du workflow visible dans l’interface GitHub Actions
+name: CI
+
+# 📅 Déclencheurs automatiques du workflow
+on:
+  push:                      # Quand on pousse du code (commit + push)
+    branches: [ main ]       # Seulement si on pousse sur la branche "main"
+  pull_request:              # Ou quand une pull request est ouverte vers "main"
+    branches: [ main ]
+
+jobs:
+  # ======================
+  # 🧪 JOB BACKEND : tests et lint Python
+  # ======================
+  backend:
+    name: 🔧 Backend Tests & Lint         # Nom du job affiché dans GitHub Actions
+    runs-on: ubuntu-latest               # Le job tourne sur une machine virtuelle Ubuntu
+
+    services:                          # Déclaration des services Docker nécessaires
+      postgres:                       # Service PostgreSQL (base de données)
+        image: postgres:15            # Utilise l’image officielle PostgreSQL version 15
+        env:                        # Variables d’environnement pour PostgreSQL
+          POSTGRES_USER: root
+          POSTGRES_PASSWORD: admin123
+          POSTGRES_DB: Restaurant
+        ports: [ "5432:5432" ]        # Expose le port 5432 (standard PostgreSQL)
+
+      redis:                         # Service Redis (cache, sessions...)
+        image: redis:alpine           # Redis version alpine (allégée, rapide à démarrer)
+        ports: [ "6379:6379" ]        # Expose le port 6379 (standard Redis)
+
+    steps:
+      - name: Checkout code          # Étape 1 : récupérer le code source du repo
+        uses: actions/checkout@v3
+
+      - name: Cache pip dependencies  # Étape 2 : mise en cache du dossier pip pour accélérer les installs
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip          # Cache le dossier où pip stocke ses paquets téléchargés
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }} # Clé cache basée sur requirements.txt
+          restore-keys: |
+            ${{ runner.os }}-pip-     # Clé partielle si cache complet non trouvé
+
+      - name: Set up Python           # Étape 3 : installer Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies    # Étape 4 : installer les paquets Python nécessaires
+        working-directory: backend    # Se placer dans le dossier backend
+        run: |
+          python -m pip install --upgrade pip   # Met à jour pip
+          pip install -r requirements.txt       # Installe les dépendances listées
+
+      - name: Run flake8 (lint)        # Étape 5 : analyse du code Python avec flake8 (style, erreurs...)
+        working-directory: backend
+        run: flake8 .
+
+      - name: Run pytest (tests unitaires)  # Étape 6 : exécution des tests Python avec pytest
+        working-directory: backend
+        run: pytest
+
+  # ======================
+  # 🖥️ JOB FRONTEND : lint et tests JavaScript/TypeScript
+  # ======================
+  frontend:
+    name: 🌐 Frontend Lint & Test      # Nom du job frontend
+    runs-on: ubuntu-latest             # Sur une VM Ubuntu
+
+    steps:
+      - name: Checkout code            # Récupérer le code source
+        uses: actions/checkout@v3
+
+      - name: Cache node modules       # Mise en cache du dossier node_modules pour accélérer npm install
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }} # Clé cache basée sur package-lock.json
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - name: Setup Node.js            # Installer Node.js version 18
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies     # Installer les dépendances du frontend avec npm
+        working-directory: frontend
+        run: npm install
+
+      - name: Run ESLint (lint frontend)  # Lancer ESLint pour vérifier le style et les erreurs JS/TS
+        working-directory: frontend
+        run: npm run lint
+
+      - name: Run Jest (tests frontend)   # Exécuter les tests frontend avec Jest, une seule fois (--watchAll=false)
+        working-directory: frontend
+        run: npm run test -- --watchAll=false
+
+  # ======================
+  # 🐳 JOB BUILD DOCKER : construction des images Docker backend & frontend
+  # ======================
+  build-docker:
+    name: 🐋 Build Docker Images       # Nom du job de build Docker
+    runs-on: ubuntu-latest            # Sur une VM Ubuntu
+
+    steps:
+      - name: Checkout code           # Récupérer le code source
+        uses: actions/checkout@v3
+
+      - name: Build backend Docker image     # Construire l’image Docker du backend
+        run: docker build -t restaurant-backend ./backend
+
+      - name: Build frontend Docker image    # Construire l’image Docker du frontend
+        run: docker build -t restaurant-frontend ./frontend
