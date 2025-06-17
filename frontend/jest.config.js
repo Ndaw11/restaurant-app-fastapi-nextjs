@@ -1,9 +1,8 @@
 module.exports = {
-   testEnvironment: "jsdom",
+  testEnvironment: 'jsdom', // pour pouvoir tester le DOM avec react-testing-library
   transform: {
-    "^.+\\.(js|jsx|ts|tsx)$": "babel-jest"
+    '^.+\\.(js|jsx|ts|tsx)$': 'babel-jest',
   },
-  moduleFileExtensions: ["js", "jsx", "ts", "tsx", "json", "node"],
-  setupFilesAfterEnv: ["@testing-library/jest-dom"],
-  testPathIgnorePatterns: ["/node_modules/", "/.next/"],
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'], // si tu as un fichier de setup
+  moduleFileExtensions: ['js', 'jsx', 'json', 'node'],
 };

@@ -1,5 +1,5 @@
-// frontend/__tests__/sanity.test.js
-import { render, screen } from "@testing-library/react";
+import React from 'react';
+import { render, screen } from '@testing-library/react';
 
 test("affiche Hello World", () => {
   render(<div>Hello World</div>);
