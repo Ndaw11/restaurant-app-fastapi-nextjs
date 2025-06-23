@@ -5,7 +5,6 @@ from backend.models.user import User
 from backend.utils.security import hash_password
 import pytest
 
-
 client = TestClient(app)
 
 
@@ -39,7 +38,6 @@ def test_login_failure():
         data={"username": "wrong@test.com", "password": "wrongpass"}
     )
     assert response.status_code == 401
-
 
 def test_protected_route_forbidden():
     response = client.get("/admin/users")  # pas de token
