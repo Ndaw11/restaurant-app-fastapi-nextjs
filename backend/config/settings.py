@@ -1,15 +1,13 @@
 # Import de la classe BaseSettings depuis Pydantic.
-# BaseSettings permet de définir une configuration
+# BaseSettings permet de définir une configuration 
 # basée sur des variables d'environnement.
 from pydantic_settings import BaseSettings
 
-# Définition d'une classe Settings qui hérite de
+# Définition d'une classe Settings qui hérite de 
 # BaseSettings.
-# Cette classe va automatiquement charger les valeurs des
-# variables d'environnement définies
+# Cette classe va automatiquement charger les valeurs des 
+# variables d'environnement définies 
 # dans un fichier .env ou dans l'environnement système.
-
-
 class Settings(BaseSettings):
     # URL de connexion à la base de données.
     # Exemple : "postgresql://user:password@localhost/dbname"
@@ -28,20 +26,15 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int
 
     # Classe de configuration interne à Pydantic.
-    # Elle permet ici de spécifier le chemin vers le fichier .env qui contient
+    # Elle permet ici de spécifier le chemin vers le fichier .env qui contient 
     # les variables d'environnement.
     class Config:
-        # Chemin relatif vers le fichier .env situé
-        # deux niveaux au-dessus du fichier actuel.
+        # Chemin relatif vers le fichier .env situé deux niveaux au-dessus du fichier actuel.
         # À adapter selon l'organisation de ton projet.
         env_file = "../../.env"  # important : pointer vers le bon dossier !
 
-
-# Création d'une instance unique
-# de la classe Settings.
-# Grâce à cette instance, tu pourras
-# accéder à toutes les variables de configuration en
+# Création d'une instance unique de la classe Settings.
+# Grâce à cette instance, tu pourras accéder à toutes les variables de configuration en 
 # important simplement "settings" dans les autres modules.
-# Ce settings-là, tu pourras l'importer partout dans ton
-# projet pour accéder aux variables de config
-settings = Settings()
+# Ce settings-là, tu pourras l'importer partout dans ton projet pour accéder aux variables de config
+settings = Settings()  
