@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from app.main import app
+from backend.main import app
 from backend.database import SessionLocal
 from backend.models.user import User
 from backend.utils.security import hash_password
