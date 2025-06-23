@@ -4,7 +4,7 @@ from backend.database import SessionLocal
 from backend.models.user import User
 from backend.utils.security import hash_password
 import pytest
-from starlette.testclient import TestClient as TestClient
+
 
 client = TestClient(app)
 
