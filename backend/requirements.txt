@@ -8,3 +8,7 @@ redis
 pydantic_settings
 pytest
 flake8
+pydantic[email]
+passlib[bcrypt]
+python-jose[cryptography]
+python-multipart
